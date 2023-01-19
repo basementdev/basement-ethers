@@ -1,5 +1,5 @@
 {
-  "name": "@basementdev/ethers",
+  "name": "@basementdev/ethers-provider",
   "version": "0.0.1",
   "description": "Wrapper for ethers JSON-RPC provider",
   "private": false,
@@ -19,6 +19,7 @@
     "test": "jest",
     "format": "npx prettier --write \"(src|test)/**/*.ts\"",
     "lint": "npx eslint src/**/*.ts",
+    "prepublishOnly": "yarn test && yarn build",
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags",
