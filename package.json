@@ -1,0 +1,38 @@
+{
+  "name": "@basementdev/ethers",
+  "version": "0.0.1",
+  "description": "Wrapper for ethers JSON-RPC provider",
+  "private": false,
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "dependencies": {
+    "@basementdev/sdk": "^1.0.8",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/logger": "^5.7.0",
+    "@ethersproject/properties": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/web": "^5.7.1"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "repository": {
+    "url": "https://github.com/basementdev/basement-ethers"
+  },
+  "bugs": {
+    "url": "https://github.com/basementdev/basement-ethers/issues"
+  },
+  "files": [
+    "dist/*"
+  ],
+  "keywords": [
+    "ethers",
+    "ethereum",
+    "web3",
+    "basement"
+  ],
+  "devDependencies": {
+    "@types/node": "^18.11.18"
+  }
+}
