@@ -1,19 +1,20 @@
+import { BasementSDK, TransactionLogFilter } from "@basementdev/sdk";
+import type { FilterByBlockHash } from "@ethersproject/abstract-provider";
+import { Logger } from "@ethersproject/logger";
+import { resolveProperties } from "@ethersproject/properties";
 import {
-  UrlJsonRpcProvider,
   Filter,
   Log,
   Network,
+  UrlJsonRpcProvider,
 } from "@ethersproject/providers";
-import { Logger } from "@ethersproject/logger";
-import { resolveProperties } from "@ethersproject/properties";
-import type { FilterByBlockHash } from "@ethersproject/abstract-provider";
 import type { ConnectionInfo } from "@ethersproject/web";
-import { BasementSDK, TransactionLogFilter } from "@basementdev/sdk";
 
-const logger = new Logger(process.env.npm_package_version);
+const logger = new Logger(process.env.npm_package_version as string);
 
 function transformFilters(filters: Filter): Partial<TransactionLogFilter> {
-  let { address, fromBlock, toBlock, topics } = filters;
+  const { address } = filters;
+  let { fromBlock, toBlock, topics } = filters;
 
   if (fromBlock) {
     fromBlock = +fromBlock;
@@ -23,7 +24,7 @@ function transformFilters(filters: Filter): Partial<TransactionLogFilter> {
   }
 
   if (topics) {
-    topics = [topics.flat()];
+    topics = [(topics as any).flat()];
   }
   return {
     topics: topics as string[][],
@@ -33,17 +34,24 @@ function transformFilters(filters: Filter): Partial<TransactionLogFilter> {
   };
 }
 
-export class BasementProvider extends UrlJsonRpcProvider {
+export default class BasementProvider extends UrlJsonRpcProvider {
   static originalProvider: UrlJsonRpcProvider;
-  private sdk: BasementSDK;
+
+  private readonly sdk: BasementSDK;
+
   private constructor(provider: UrlJsonRpcProvider, basementApiKey?: string) {
     super(provider.network, provider.apiKey);
+
     this.sdk = new BasementSDK({ apiKey: basementApiKey });
   }
+
   async getLogs(
     filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>
   ): Promise<Log[]> {
-    await this.getNetwork();
+    const network = await this.getNetwork();
+    if (network.name !== "homestead") {
+      logger.throwError("We currently only support the Ethereum mainnet.");
+    }
     const params = await resolveProperties({
       filter: this._getFilter(filter),
     });

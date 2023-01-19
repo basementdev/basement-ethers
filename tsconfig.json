@@ -9,6 +9,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "moduleResolution": "Node",
+    "strict": true,
     "lib": ["es2021", "dom"]
   },
   "include": ["src/**/*"],
