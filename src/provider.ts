@@ -34,6 +34,26 @@ function transformFilters(filters: Filter): Partial<TransactionLogFilter> {
   };
 }
 
+async function fetchLogsFromPaginatedQuery(
+  sdk: BasementSDK,
+  filters: Partial<TransactionLogFilter>
+) {
+  const limit = 500;
+  const res = [];
+  let afterCursor: string | undefined;
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    const data = await sdk.transactionLogs({
+      filter: filters,
+      limit,
+      after: afterCursor,
+    });
+    res.push(...data.transactionLogs);
+    afterCursor = data.cursors.after;
+  } while (afterCursor);
+  return res;
+}
+
 export default class BasementProvider extends UrlJsonRpcProvider {
   static originalProvider: UrlJsonRpcProvider;
 
@@ -58,16 +78,14 @@ export default class BasementProvider extends UrlJsonRpcProvider {
     const { filter: resolvedFilter } = params;
     if ((resolvedFilter as FilterByBlockHash).blockHash) {
       logger.throwArgumentError(
-        "blockHash isn't supported when using the Basement wrapper",
+        "blockHash isn't currently supported when using the Basement wrapper",
         Logger.errors.NOT_IMPLEMENTED,
         filter
       );
     }
     const transformedFilters = transformFilters(resolvedFilter as Filter);
-    const data = await this.sdk.transactionLogs({
-      filter: transformedFilters,
-    });
-    return data.transactionLogs as any;
+    const logs = fetchLogsFromPaginatedQuery(this.sdk, transformedFilters);
+    return logs as any;
   }
 
   static enhance(provider: UrlJsonRpcProvider, basementApiKey?: string) {
