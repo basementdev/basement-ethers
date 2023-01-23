@@ -1,20 +1,20 @@
-import { BasementSDK, TransactionLogFilter } from "@basementdev/sdk";
+import {
+  BasementSDK,
+  TransactionLogFilter,
+  TransactionLogsQuery,
+  TransactionLogsQueryIncludeOptions,
+} from "@basementdev/sdk";
 import type { FilterByBlockHash } from "@ethersproject/abstract-provider";
 import { Logger } from "@ethersproject/logger";
 import { resolveProperties } from "@ethersproject/properties";
-import {
-  Filter,
-  Log,
-  Network,
-  UrlJsonRpcProvider,
-} from "@ethersproject/providers";
+import { Filter, Network, UrlJsonRpcProvider } from "@ethersproject/providers";
 import type { ConnectionInfo } from "@ethersproject/web";
 
 const logger = new Logger(process.env.npm_package_version as string);
 
 function transformFilters(filters: Filter): Partial<TransactionLogFilter> {
   const { address } = filters;
-  let { fromBlock, toBlock, topics } = filters;
+  let { fromBlock, toBlock } = filters;
 
   if (fromBlock) {
     fromBlock = +fromBlock;
@@ -23,11 +23,8 @@ function transformFilters(filters: Filter): Partial<TransactionLogFilter> {
     toBlock = +toBlock;
   }
 
-  if (topics) {
-    topics = [(topics as any).flat()];
-  }
   return {
-    topics: topics as string[][],
+    topics: filters.topics as string[][],
     addresses: address ? [address] : undefined,
     fromBlock: fromBlock as number,
     toBlock: toBlock as number,
@@ -36,7 +33,8 @@ function transformFilters(filters: Filter): Partial<TransactionLogFilter> {
 
 async function fetchLogsFromPaginatedQuery(
   sdk: BasementSDK,
-  filters: Partial<TransactionLogFilter>
+  filters: Partial<TransactionLogFilter>,
+  include?: TransactionLogsQueryIncludeOptions
 ) {
   const limit = 500;
   const res = [];
@@ -47,6 +45,7 @@ async function fetchLogsFromPaginatedQuery(
       filter: filters,
       limit,
       after: afterCursor,
+      include,
     });
     res.push(...data.transactionLogs);
     afterCursor = data.cursors.after;
@@ -65,27 +64,60 @@ export default class BasementProvider extends UrlJsonRpcProvider {
     this.sdk = new BasementSDK({ apiKey: basementApiKey });
   }
 
-  async getLogs(
-    filter: Filter | FilterByBlockHash | Promise<Filter | FilterByBlockHash>
-  ): Promise<Log[]> {
+  async getEnhancedLogs(
+    filter:
+      | Filter
+      | FilterByBlockHash
+      | Promise<Filter | FilterByBlockHash>
+      | Partial<
+          Pick<
+            TransactionLogFilter,
+            "addresses" | "transaction" | "includeRemoved"
+          >
+        >,
+    include?: TransactionLogsQueryIncludeOptions
+  ): Promise<
+    NonNullable<TransactionLogsQuery["transactionLogs"]>["transactionLogs"]
+  > {
     const network = await this.getNetwork();
+
     if (network.name !== "homestead") {
       logger.throwError("We currently only support the Ethereum mainnet.");
     }
+
+    const { addresses, transaction, includeRemoved, ...ethersFilters } =
+      <any>filter || {};
+
     const params = await resolveProperties({
-      filter: this._getFilter(filter),
+      filter: this._getFilter(ethersFilters as any),
     });
+
     const { filter: resolvedFilter } = params;
-    if ((resolvedFilter as FilterByBlockHash).blockHash) {
+
+    if (ethersFilters.blockHash) {
       logger.throwArgumentError(
-        "blockHash isn't currently supported when using the Basement wrapper",
+        "`blockHash` isn't currently supported when using the Basement wrapper",
         Logger.errors.NOT_IMPLEMENTED,
         filter
       );
     }
-    const transformedFilters = transformFilters(resolvedFilter as Filter);
-    const logs = fetchLogsFromPaginatedQuery(this.sdk, transformedFilters);
-    return logs as any;
+
+    if (ethersFilters.address && addresses) {
+      logger.throwArgumentError(
+        "`address` and `addresses` cannot be both set",
+        Logger.errors.UNEXPECTED_ARGUMENT,
+        filter
+      );
+    }
+
+    const transformedFilters = transformFilters(resolvedFilter);
+
+    const logs = fetchLogsFromPaginatedQuery(
+      this.sdk,
+      { ...transformedFilters, includeRemoved, addresses, transaction },
+      include
+    );
+    return logs;
   }
 
   static enhance(provider: UrlJsonRpcProvider, basementApiKey?: string) {
