@@ -42,7 +42,10 @@ export default class BasementProvider extends UrlJsonRpcProvider {
     const network = await this.getNetwork();
 
     if (network.name !== "homestead") {
-      logger.throwError("We currently only support the Ethereum mainnet.");
+      logger.throwError(
+        "We currently only support the Ethereum mainnet.",
+        Logger.errors.NOT_IMPLEMENTED
+      );
     }
 
     const { addresses, transaction, includeRemoved, ...ethersFilters } =
