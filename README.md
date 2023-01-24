@@ -1,5 +1,19 @@
 # Basement ethers.js provider wrapper
 
+## Installation
+
+**npm:**
+
+```bash
+npm install @basementdev/ethers-provider
+```
+
+**yarn:**
+
+```bash
+yarn add @basementdev/ethers-provider
+```
+
 ### Getting started
 
 ```typescript
