@@ -1,6 +1,6 @@
 {
   "name": "@basementdev/ethers-provider",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Wrapper for ethers JSON-RPC provider",
   "private": false,
   "main": "dist/index.js",
