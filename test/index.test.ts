@@ -3,10 +3,7 @@ import { Logger } from "@ethersproject/logger";
 import { BasementProvider } from "../src";
 
 describe("getEnhancedLogs", () => {
-  const provider = new AlchemyProvider(
-    "homestead",
-    "wYdHXviu5o6u-qpzviJtesjNF9m0gaTK"
-  );
+  const provider = new AlchemyProvider("homestead");
 
   const baseFilterOpts = {
     fromBlock: 16426225,
