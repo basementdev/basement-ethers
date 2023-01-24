@@ -37,4 +37,4 @@ console.log(logs);
 - Resolve the reverse profile from the sender and receiver of the transaction.
 - Resolve the events related to the transaction
 
-The documentation for the options and filters that can be included can be found [here](https://docs.basement.dev/sdk#transactionlogs)
+The documentation for the `include` options and `filters` that can be included can be found [here](https://docs.basement.dev/sdk#transactionlogs)
