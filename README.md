@@ -32,7 +32,7 @@ console.log(logs);
 
 ### `getEnhancedLogs` can be used as a drop-in replacement for ethers.js' `getLogs`; there are several improvements added:
 
-- Find logs from multiple addresses
+- Find logs from multiple addresses/block numbers/block hashes
 - Resolve the related transaction the log was emitted
 - Resolve the reverse profile from the sender and receiver of the transaction.
 - Resolve the events related to the transaction
