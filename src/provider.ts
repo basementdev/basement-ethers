@@ -32,7 +32,7 @@ export default class BasementProvider extends UrlJsonRpcProvider {
       | Partial<
           Pick<
             TransactionLogFilter,
-            "addresses" | "transaction" | "includeRemoved"
+            "addresses" | "transaction" | "includeRemoved" | "blockHashes"
           >
         >,
     include?: TransactionLogsQueryIncludeOptions
@@ -48,8 +48,13 @@ export default class BasementProvider extends UrlJsonRpcProvider {
       );
     }
 
-    const { addresses, transaction, includeRemoved, ...ethersFilters } =
-      <any>filter || {};
+    const {
+      addresses,
+      blockHashes,
+      transaction,
+      includeRemoved,
+      ...ethersFilters
+    } = <any>filter || {};
 
     const params = await resolveProperties({
       filter: this._getFilter(ethersFilters as any),
@@ -57,10 +62,10 @@ export default class BasementProvider extends UrlJsonRpcProvider {
 
     const { filter: resolvedFilter } = params;
 
-    if (ethersFilters.blockHash) {
+    if (ethersFilters.blockHash && blockHashes) {
       logger.throwArgumentError(
-        "`blockHash` isn't currently supported when using the Basement wrapper",
-        Logger.errors.NOT_IMPLEMENTED,
+        "`blockHash` and `blockHashes` cannot be both set",
+        Logger.errors.UNEXPECTED_ARGUMENT,
         filter
       );
     }
@@ -77,7 +82,13 @@ export default class BasementProvider extends UrlJsonRpcProvider {
 
     const logs = fetchLogsFromPaginatedQuery(
       this.sdk,
-      { ...transformedFilters, includeRemoved, addresses, transaction },
+      {
+        ...transformedFilters,
+        includeRemoved,
+        addresses: addresses || transformedFilters.addresses,
+        blockHashes: blockHashes || transformedFilters.blockHashes,
+        transaction,
+      },
       include
     );
     return logs;

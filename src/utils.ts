@@ -3,13 +3,13 @@ import {
   TransactionLogFilter,
   TransactionLogsQueryIncludeOptions,
 } from "@basementdev/sdk";
-import { Filter } from "@ethersproject/abstract-provider";
+import { Filter, FilterByBlockHash } from "@ethersproject/abstract-provider";
 
 export function transformFilters(
-  filters: Filter
+  filters: Filter | FilterByBlockHash
 ): Partial<TransactionLogFilter> {
-  const { address } = filters;
-  let { fromBlock, toBlock } = filters;
+  const { address, blockHash } = filters as FilterByBlockHash;
+  let { fromBlock, toBlock } = filters as Filter;
 
   if (fromBlock) {
     fromBlock = +fromBlock;
@@ -21,6 +21,7 @@ export function transformFilters(
   return {
     topics: filters.topics as string[][],
     addresses: address ? [address] : undefined,
+    blockHashes: blockHash ? [blockHash] : undefined,
     fromBlock: fromBlock as number,
     toBlock: toBlock as number,
   };
@@ -33,6 +34,7 @@ export async function fetchLogsFromPaginatedQuery(
 ) {
   const limit = 500;
   const res = [];
+
   let afterCursor: string | undefined;
   do {
     // eslint-disable-next-line no-await-in-loop
@@ -40,7 +42,7 @@ export async function fetchLogsFromPaginatedQuery(
       filter: filters,
       limit,
       after: afterCursor,
-      include,
+      include: { ...include, blockHash: true },
     });
     res.push(...data.transactionLogs);
     afterCursor = data.cursors.after;
