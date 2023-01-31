@@ -32,7 +32,11 @@ export default class BasementProvider extends UrlJsonRpcProvider {
       | Partial<
           Pick<
             TransactionLogFilter,
-            "addresses" | "transaction" | "includeRemoved" | "blockHashes"
+            | "addresses"
+            | "transaction"
+            | "includeRemoved"
+            | "blockHashes"
+            | "blockNumbers"
           >
         >,
     include?: TransactionLogsQueryIncludeOptions
@@ -50,6 +54,7 @@ export default class BasementProvider extends UrlJsonRpcProvider {
 
     const {
       addresses,
+      blockNumbers,
       blockHashes,
       transaction,
       includeRemoved,
@@ -87,6 +92,7 @@ export default class BasementProvider extends UrlJsonRpcProvider {
         includeRemoved,
         addresses: addresses || transformedFilters.addresses,
         blockHashes: blockHashes || transformedFilters.blockHashes,
+        blockNumbers,
         transaction,
       },
       include

@@ -3,7 +3,6 @@ import { Logger } from "@ethersproject/logger";
 import { BasementProvider } from "../src";
 
 describe("getEnhancedLogs", () => {
-  jest.setTimeout(30000);
   const provider = new AlchemyProvider("homestead");
 
   const baseFilterOpts = {
@@ -34,7 +33,7 @@ describe("getEnhancedLogs", () => {
     expect(txLog.transaction?.events).toBeDefined();
   });
 
-  it.only("fetches when filtering by blockhash", async () => {
+  it("fetches when filtering by blockhash", async () => {
     const blockHash =
       "0xc77e675ed79e784cb94673f883769e3fd1650e2978e06c8386b2dcc9a555ed1d";
     const logs = await enhancedProvider.getEnhancedLogs({
@@ -46,6 +45,18 @@ describe("getEnhancedLogs", () => {
     expect(logs.length).toBe(2);
     expect(txLog.blockHash).toBe(blockHash);
     expect(txLog.address.address.toLowerCase()).toBe(ADDRESS);
+  });
+
+  it("fetches when filtering by block numbers", async () => {
+    const blockNumbers = [16426225, 16426226];
+    const logs = await enhancedProvider.getEnhancedLogs({
+      blockNumbers,
+      address: ADDRESS,
+    });
+
+    const txLog = logs[0];
+    expect(logs.length).toBe(1);
+    expect(blockNumbers.includes(txLog.blockNumber)).toBe(true);
   });
 
   it("throws when given blockhashes and blockhash", async () => {
